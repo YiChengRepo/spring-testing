@@ -1,5 +1,8 @@
 package example;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.After;
 import org.junit.Before;
@@ -14,41 +17,38 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class HelloE2ESeleniumTest {
 
-    private WebDriver driver;
+  private WebDriver driver;
 
-    @LocalServerPort
-    private int port;
+  @LocalServerPort
+  private int port;
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        WebDriverManager.chromedriver().version("78").setup();
+  @BeforeClass
+  public static void setUpClass() throws Exception {
+    WebDriverManager.chromedriver().version("78").setup();
+  }
+
+  @Before
+  public void setUp() throws Exception {
+    driver = new ChromeDriver();
+  }
+
+  @After
+  public void tearDown() {
+    if (driver != null) {
+      driver.quit();
     }
+  }
 
-    @Before
-    public void setUp() throws Exception {
-        driver = new ChromeDriver();
-    }
+  @Test
+  public void helloPageHasTextHelloWorld() {
+    driver.navigate().to(String.format("http://localhost:%s/hello", port));
 
-    @After
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
-    }
+    WebElement body = driver.findElement(By.tagName("body"));
 
-    @Test
-    public void helloPageHasTextHelloWorld() {
-        driver.navigate().to(String.format("http://localhost:%s/hello", port));
-
-        WebElement body = driver.findElement(By.tagName("body"));
-
-        assertThat(body.getText(), containsString("Hello World!"));
-    }
+    assertThat(body.getText(), containsString("Hello World!"));
+  }
 }

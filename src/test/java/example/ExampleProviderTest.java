@@ -1,5 +1,8 @@
 package example;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import au.com.dius.pact.provider.junit.Provider;
 import au.com.dius.pact.provider.junit.RestPactRunner;
 import au.com.dius.pact.provider.junit.State;
@@ -9,19 +12,14 @@ import au.com.dius.pact.provider.spring.target.MockMvcTarget;
 import example.person.Person;
 import example.person.PersonRepository;
 import example.weather.WeatherClient;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.Optional;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
- *  A provider test for the contract between this service (as a provider) and
- *  a primitive consumer. The implementation of the consumer can be
- *  found under https://github.com/hamvocke/spring-testing-consumer
+ * A provider test for the contract between this service (as a provider) and a primitive consumer.
+ * The implementation of the consumer can be found under https://github.com/hamvocke/spring-testing-consumer
  */
 
 @RunWith(RestPactRunner.class)
@@ -29,28 +27,25 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @PactFolder("target/pacts") // tells pact where to load the pact files from
 public class ExampleProviderTest {
 
-    @Mock
-    private PersonRepository personRepository;
+  @TestTarget
+  public final MockMvcTarget target = new MockMvcTarget();
+  @Mock
+  private PersonRepository personRepository;
+  @Mock
+  private WeatherClient weatherClient;
+  private ExampleController exampleController;
 
-    @Mock
-    private WeatherClient weatherClient;
+  @Before
+  public void before() {
+    initMocks(this);
+    exampleController = new ExampleController(personRepository, weatherClient);
+    target.setControllers(exampleController);
+  }
 
-    private ExampleController exampleController;
-
-    @TestTarget
-    public final MockMvcTarget target = new MockMvcTarget();
-
-    @Before
-    public void before() {
-        initMocks(this);
-        exampleController = new ExampleController(personRepository, weatherClient);
-        target.setControllers(exampleController);
-    }
-
-    @State("person data") // same as the "given()" part in our consumer test
-    public void personData() {
-        Person peterPan = new Person("Peter", "Pan");
-        when(personRepository.findByLastName("Pan")).thenReturn(Optional.of
-                (peterPan));
-    }
+  @State("person data") // same as the "given()" part in our consumer test
+  public void personData() {
+    Person peterPan = new Person("Peter", "Pan");
+    when(personRepository.findByLastName("Pan")).thenReturn(Optional.of
+        (peterPan));
+  }
 }
